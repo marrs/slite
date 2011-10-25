@@ -1,0 +1,4 @@
+exports.app_root = '';  // Path to app directory
+exports.port     = 8124;
+exports.ip       = '127.0.0.1';
+exports.default_controller = '/index';

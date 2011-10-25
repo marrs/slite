@@ -1,0 +1,3 @@
+#!/bin/bash
+export SLITE_CONFIG='' # Path to slite config.
+node lib/slite/main.js
