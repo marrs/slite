@@ -45,7 +45,8 @@ exports.controller_proto = controller_proto;
 function controller_proto(request) {
     var my = {
         request: '',
-        view: {}
+        view: {},
+        path: '/'
     };
     if (typeof request === 'object') {
         merge(my, request);
@@ -72,12 +73,17 @@ function controller_proto(request) {
             this.view[p] = this.view[p] || v;
         },
 		get: function(resource, partial){
+            var url, controller_info, split_pathname, parts, action;
 
-			var url = require('url').parse(resource, true),
-                controller_info = {},
-				split_pathname = find_controller(url.pathname, []),
-				parts = resource.split('/'),
-				action = parts.pop();
+            if (resource[0] !== '/') {
+                resource = my.path + resource;
+            }
+            url = require('url').parse(resource, true);
+            controller_info = {};
+            split_pathname = find_controller(url.pathname, []);
+            my.path = split_pathname.path + '/';
+            parts = resource.split('/');
+            action = parts.pop();
             if (split_pathname === false) {
                 console.log('Default controller not found. Path:', url.pathname);
                 throw "500";
@@ -140,7 +146,8 @@ function controller_proto(request) {
 
             var tpl_controller = controller_proto({
                 request: priv.template,
-                view: view
+                view: view,
+                path: my.path
             });
             return tpl_controller.get(priv.template);
 		},
@@ -183,7 +190,6 @@ function find_action(tail) {
             action = tail[0];
         }
     } else {
-        debug('using default action:', default_action);
         action = default_action;
     }
     return {
