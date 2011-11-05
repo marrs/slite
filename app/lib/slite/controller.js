@@ -56,48 +56,6 @@ function controller_proto(request) {
         template: false,    // Set when template is called
         template_placeholder: ''
     };
-	function find_controller(path, tail) {
-		if (file_exists(slite.root('/controllers' + path + '.js'))) {
-			return {path: path, tail: tail};
-		} else {
-			var parts = path_to_array(path),
-				part;
-			if (parts.length) {
-				part = parts.pop();
-				if (part) {
-					tail.unshift(parts.pop());
-				}
-			}
-			path = parts.join('/');
-			if (path && path !== '') {
-				return find_controller('/' + path, tail);
-			} else {
-				return file_exists(slite.root('/controllers' + default_controller + '.js'))?
-					{path: default_controller, tail: tail}  :  false;
-			}
-		}
-	}
-    function find_action(tail) {
-        var action, format;
-        if (tail.length) {
-            if (tail[1] && tail[1].indexOf('.') == 0) {
-                format = tail[1];
-                action = tail[0];
-            } else if (tail[0].indexOf('.') == 0) {
-                format = tail[0]; 
-                action = default_action;
-            } else {
-                action = tail[0];
-            }
-        } else {
-            debug('using default action:', default_action);
-            action = default_action;
-        }
-        return {
-            action: action,
-            format: format
-        }
-    }
 	return {
 		request: my.request,
         format: default_format,
@@ -187,6 +145,49 @@ function controller_proto(request) {
 
 	};
 };
+
+function find_controller(path, tail) {
+    if (file_exists(slite.root('/controllers' + path + '.js'))) {
+        return {path: path, tail: tail};
+    } else {
+        var parts = path_to_array(path),
+            part;
+        if (parts.length) {
+            part = parts.pop();
+            if (part) {
+                tail.unshift(parts.pop());
+            }
+        }
+        path = parts.join('/');
+        if (path && path !== '') {
+            return find_controller('/' + path, tail);
+        } else {
+            return file_exists(slite.root('/controllers' + default_controller + '.js'))?
+                {path: default_controller, tail: tail}  :  false;
+        }
+    }
+}
+function find_action(tail) {
+    var action, format;
+    if (tail.length) {
+        if (tail[1] && tail[1].indexOf('.') == 0) {
+            format = tail[1];
+            action = tail[0];
+        } else if (tail[0].indexOf('.') == 0) {
+            format = tail[0]; 
+            action = default_action;
+        } else {
+            action = tail[0];
+        }
+    } else {
+        debug('using default action:', default_action);
+        action = default_action;
+    }
+    return {
+        action: action,
+        format: format
+    }
+}
 
 function path_to_array(path) {
 	if (path === '/') {
