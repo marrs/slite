@@ -1,4 +1,5 @@
 var sys = require('sys'),
+    fs  = require('fs'),
     http = require('http'),
     slite = require('./slite'),
     mvc = require('./controller'),
@@ -24,15 +25,13 @@ var server = http.createServer(function (req, res) {
 	function line(str) {
 		res.write(str + "\n");
 	}
-	line(req.url);
-	line(req.method);
 	try {
 		line(delegate(req));
 	} catch (e) {
 		line('ERROR:');
 		line(e);
 	}
-	res.end("fin\n");
+	res.end();
 });
 server.listen(config.port, config.ip);
 sys.puts('Server running at ' + config.ip + ':' + config.port + '/');
@@ -44,6 +43,7 @@ process.addListener("SIGINT", function () {
 });
 
 function delegate (req) {
+
     var controller = mvc.controller_proto('request');
 	sys.puts('Getting', req.url);
 	return controller.get(req.url);
