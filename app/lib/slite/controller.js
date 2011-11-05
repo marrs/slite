@@ -40,6 +40,19 @@ function otos(o, depth) {
 exports.controller_proto = controller_proto;
 
 function controller_proto(request) {
+    var my = {
+        request: '',
+        view: {}
+    };
+    if (typeof request === 'object') {
+        merge(my, request);
+    } else {
+        my.request = request;
+    }
+    var priv = {
+        template: false,    // Set when template is called
+        template_placeholder: ''
+    };
 	function find_controller(path, tail) {
 		if (file_exists(slite.root('/controllers' + path + '.js'))) {
 			return {path: path, tail: tail};
@@ -62,12 +75,18 @@ function controller_proto(request) {
 		}
 	}
 	return {
-		request: request,
-		view: {},
+		request: my.request,
+        format: default_format,
+		view: my.view,
 		actions: {},
 		url: {},
+        template: function(template_location, placeholder) {
+            priv.template = template_location;
+            // Placeholder into which the controller's view is supplanted.
+            priv.template_placeholder = placeholder;
+        },
 		get: function(resource, partial){
-			debug('resource', resource);
+
 			var url = require('url').parse(resource, true),
 				controller_info = find_controller(url.pathname, []),
 				parts = resource.split('/'),
@@ -77,11 +96,10 @@ function controller_proto(request) {
                 throw "500";
             }
 			controller_info.url = url;
-			debug('controller_info:', otos(controller_info));
 			// XXX This is wrong!  this.format sets the format for the whole
 			// controller.  We want to set the format for each action.
 			this.format = this.format || default_format;
-			debug('format', this.format);
+			//debug('format', this.format);
 			/* TODO: Validate signatures:
 			* get(resource);                   Default view
 			*/
@@ -110,13 +128,35 @@ function controller_proto(request) {
 			if ( ! controller_info) {
 				throw "404";
 			}
-			var controller = dispatch_controller(this, controller_info);
+			dispatch_controller(this, controller_info);
 
-			return supplant_template(
-				controller_info.path + '/' + controller.called_action + this.format,
-				controller.view
+            // TODO: Check if template_location has an extension (e.g. .html),
+            // otherwise append this.format.
+			var this_component = supplant_template(
+				controller_info.path + '/' + this.called_action + this.format,
+				this.view
 			);
-		}
+
+            if ( ! priv.template ) {
+                return this_component;
+            }
+            var view = {};
+
+            view[priv.template_placeholder] = this_component;
+            for (var i in this.view) {
+                if (i.charAt(0) === '_') {
+                    view[i.substring(1)] = this.view[i];
+                }
+            };
+
+            var tpl_controller = controller_proto({
+                request: priv.template,
+                view: view
+            });
+            return tpl_controller.get(priv.template);
+		},
+
+
 	};
 };
 
@@ -124,13 +164,14 @@ function path_to_array(path) {
 	if (path === '/') {
 		return [];
 	}
-	debug('path ' + path);
 	var parts = path.split('/');
 	parts.shift();
 	return parts;
 }
 
 function require_controller(c) {
+    // TODO XXX Require only gets it once.  We need to load
+    // the file on every request, at least in debug mode.
 	return require(slite.root('/controllers' + c));
 }
 
@@ -140,41 +181,43 @@ function file_exists(filename) {
 	return file instanceof fs.Stats? file.isFile()  :  false;
 }
 
-
-function dispatch_controller(controller, c) {
-	// TODO: make this a private method of controller_proto.
-	var actions = require_controller(c.path).controller,
-	    resource = c.path,
-	    format = '',
-	    action = '';
-	debug("Tail:", c.tail);
-	debug("ACTIONS?", otos(actions));
-	// XXX What does this do?
-	actions.call(controller);
-	if (c.tail.length) {
-		if (c.tail[1] && c.tail[1].indexOf('.') == 0) {
-			format = c.tail[1];
-			action = c.tail[0];
-		} else if (c.tail[0].indexOf('.') == 0) {
-			format = c.tail[0]; 
-			action = default_action;
-		} else {
-			action = c.tail[0];
-		}
-	} else {
-		debug('using default action:', default_action);
-		action = default_action;
-	}
-	controller.url = c.url;
-	debug("Controller URL:", otos(controller.url));
-	debug("Controller Actions:", otos(controller.actions));
-	controller.actions[action].call(controller);
-	controller.called_action = action;
-	return controller;
+function dispatch_controller(_this, c) {
+    var ctrl = require_controller(c.path).controller,
+        resource = c.path,
+        format = '',
+        action = '';
+    // Populate controller with ctrl properties
+    ctrl.call(_this);
+    if (c.tail.length) {
+        if (c.tail[1] && c.tail[1].indexOf('.') == 0) {
+            format = c.tail[1];
+            action = c.tail[0];
+        } else if (c.tail[0].indexOf('.') == 0) {
+            format = c.tail[0]; 
+            action = default_action;
+        } else {
+            action = c.tail[0];
+        }
+    } else {
+        debug('using default action:', default_action);
+        action = default_action;
+    }
+    _this.url = c.url;
+    _this.actions[action].call(_this);
+    _this.called_action = action;
 }
 
-function supplant_template(template_location, model) {
-	var template = fs.readFileSync(slite.root('/views' + template_location),
-	                               'utf8');
-	return template.supplant(model);
+function supplant_template (template_location, model) {
+    var tpl, view;
+    tpl= fs.readFileSync(slite.root('/views' + template_location),
+                           'utf8');
+    view = tpl.supplant(model);
+    return view;
 }
+
+function merge(o1, o2) {
+    for (var i in o2) {
+        o1[i] = o2[i];
+    }
+}
+
