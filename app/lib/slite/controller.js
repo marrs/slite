@@ -68,6 +68,9 @@ function controller_proto(request) {
             // supplanted.
             priv.template_placeholder = placeholder;
         },
+        view_: function(p, v) {
+            this.view[p] = this.view[p] || v;
+        },
 		get: function(resource, partial){
 
 			var url = require('url').parse(resource, true),
