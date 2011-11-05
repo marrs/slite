@@ -6,6 +6,9 @@ var slite = require('./slite'),
 	default_format = '.html';		// TODO: Move to config.
 
 function debug(name, val) {
+    if (typeof val === 'object') {
+        val = otos(val);
+    }
 	sys.puts(name + '\t' + val);
 }
 
@@ -74,6 +77,27 @@ function controller_proto(request) {
 			}
 		}
 	}
+    function find_action(tail) {
+        var action, format;
+        if (tail.length) {
+            if (tail[1] && tail[1].indexOf('.') == 0) {
+                format = tail[1];
+                action = tail[0];
+            } else if (tail[0].indexOf('.') == 0) {
+                format = tail[0]; 
+                action = default_action;
+            } else {
+                action = tail[0];
+            }
+        } else {
+            debug('using default action:', default_action);
+            action = default_action;
+        }
+        return {
+            action: action,
+            format: format
+        }
+    }
 	return {
 		request: my.request,
         format: default_format,
@@ -82,20 +106,24 @@ function controller_proto(request) {
 		url: {},
         template: function(template_location, placeholder) {
             priv.template = template_location;
-            // Placeholder into which the controller's view is supplanted.
+            // Placeholder string into which the controller's view is
+            // supplanted.
             priv.template_placeholder = placeholder;
         },
 		get: function(resource, partial){
 
 			var url = require('url').parse(resource, true),
-				controller_info = find_controller(url.pathname, []),
+                controller_info = {},
+				split_pathname = find_controller(url.pathname, []),
 				parts = resource.split('/'),
 				action = parts.pop();
-            if (controller_info === false) {
+            if (split_pathname === false) {
                 console.log('Default controller not found. Path:', url.pathname);
                 throw "500";
             }
 			controller_info.url = url;
+            controller_info.path = split_pathname.path;
+            merge(controller_info, find_action(split_pathname.tail));
 			// XXX This is wrong!  this.format sets the format for the whole
 			// controller.  We want to set the format for each action.
 			this.format = this.format || default_format;
@@ -181,30 +209,13 @@ function file_exists(filename) {
 	return file instanceof fs.Stats? file.isFile()  :  false;
 }
 
-function dispatch_controller(_this, c) {
-    var ctrl = require_controller(c.path).controller,
-        resource = c.path,
-        format = '',
-        action = '';
-    // Populate controller with ctrl properties
-    ctrl.call(_this);
-    if (c.tail.length) {
-        if (c.tail[1] && c.tail[1].indexOf('.') == 0) {
-            format = c.tail[1];
-            action = c.tail[0];
-        } else if (c.tail[0].indexOf('.') == 0) {
-            format = c.tail[0]; 
-            action = default_action;
-        } else {
-            action = c.tail[0];
-        }
-    } else {
-        debug('using default action:', default_action);
-        action = default_action;
-    }
-    _this.url = c.url;
-    _this.actions[action].call(_this);
-    _this.called_action = action;
+function dispatch_controller(proto, meta) {
+    var ctrl = require_controller(meta.path).controller,
+        resource = meta.path;
+    ctrl.call(proto);
+    proto.url = meta.url;
+    proto.actions[meta.action].call(proto);
+    proto.called_action = meta.action;
 }
 
 function supplant_template (template_location, model) {
