@@ -41,7 +41,6 @@ process.addListener("SIGINT", function () {
     process.exit(0)
 });
 
-<<<<<<< HEAD
 function delegate (req, res) {
     var payload;
     slite.debug(config.public_dir);
@@ -50,7 +49,7 @@ function delegate (req, res) {
             var controller = mvc.controller_proto('request');
             slite.debug('wtf', req.accepts);
             res.write(controller.get(req.url));
-	        res.end();
+            res.end();
         } else {
             res.write(data);
             res.end();
@@ -60,10 +59,4 @@ function delegate (req, res) {
 
 function write_line(res, str) {
     res.write(str + "\n");
-=======
-function delegate (req) {
-    var controller = mvc.controller_proto('request');
-    sys.puts('Getting', req.url);
-    return controller.get(req.url);
->>>>>>> Fixed tabs vs spaces formatting inconsistencies.
 }
