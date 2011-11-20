@@ -1,5 +1,5 @@
 var slite = require('./slite'),
-    sys   = require('sys'),
+    sys   = require('util'),
     fs    = require('fs'),
     default_action = 'index',		// TODO: Move to config.
 	default_controller = '/index',	// TODO: Move to config.

@@ -1,11 +1,8 @@
-var sys = require('sys'),
-    fs  = require('fs'),
+var sys = require('util'),
     http = require('http'),
     slite = require('./slite'),
     mvc = require('./controller'),
     config = slite.config;
-
-require.paths.unshift(config.app_root);
 
 if (!String.prototype.supplant) {
     String.prototype.supplant = function (o) {
