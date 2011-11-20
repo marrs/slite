@@ -22,12 +22,12 @@ function controller_proto(request) {
         template: false,    // Set when template is called
         template_placeholder: ''
     };
-	return {
-		request: my.request,
+    return {
+        request: my.request,
         format: default_format,
-		view: my.view,
-		actions: {},
-		url: {},
+    	view: my.view,
+    	actions: {},
+    	url: {},
         template: function(template_location, placeholder) {
             priv.template = template_location;
             // Placeholder string into which the controller's view is
@@ -37,91 +37,88 @@ function controller_proto(request) {
         view_: function(p, v) {
             this.view[p] = this.view[p] || v;
         },
-		get: function(resource, partial){
+    	get: function(resource, partial){
             var url, controller_info, split_pathname, parts, action;
-
             if (resource[0] !== '/') {
                 resource = my.path + resource;
             }
-            url = require('url').parse(resource, true);
-            controller_info = {};
-            split_pathname = find_controller(url.pathname, []);
-            my.path = split_pathname.path + '/';
-            parts = resource.split('/');
-            action = parts.pop();
+    	    url = require('url').parse(resource, true),
+            controller_info = {},
+    	    split_pathname = find_controller(url.pathname, []),
+    	    parts = resource.split('/'),
+    	    action = parts.pop();
             if (split_pathname === false) {
                 console.log('Default controller not found. Path:', url.pathname);
                 throw "500";
             }
-			controller_info.url = url;
+    	    controller_info.url = url;
             controller_info.path = split_pathname.path;
             slite.debug('split-pathname', split_pathname);
             merge(controller_info, find_action(split_pathname.tail));
-			// XXX This is wrong!  this.format sets the format for the whole
-			// controller.  We want to set the format for each action.
-			this.format = this.format || default_format;
-			//debug('format', this.format);
-			/* TODO: Validate signatures:
-			* get(resource);                   Default view
-			*/
-			/*
-			* get(resource, {});               Object			// DONE
-			 */
-			if (partial === {}) return this.view;
-			if (typeof partial === 'object') {
-				controller_info.url.query = partial;
-			}
-			if (typeof partial === 'String') {
-				// TODO: If filename exists, use template, otherwise try partial using
-				// default extension.  If still fails, throw 404.
-			}
-			/*
-			* get(resource, 'partial');        Speficied view
-			* get(resource, 'partial.ext');    If an extension is given then this
-			*                                  is looked up for this and all child
-			*                                  resources.  If no extension is given
-			*                                  default extension is presumed.
-			*                                  If both a resource ext and partial ext
-			*                                  are given, partial ext overrides.
-			*/
-
-
-			if ( ! controller_info) {
-				throw "404";
-			}
-			if ( ! dispatch_controller(this, controller_info)) {
+            // XXX This is wrong!  this.format sets the format for the whole
+            // controller.  We want to set the format for each action.
+            this.format = this.format || default_format;
+            //debug('format', this.format);
+            /* TODO: Validate signatures:
+            * get(resource);                   Default view
+            */
+            /*
+            * get(resource, {});               Object			// DONE
+             */
+            if (partial === {}) return this.view;
+            if (typeof partial === 'object') {
+                controller_info.url.query = partial;
+            }
+            if (typeof partial === 'String') {
+                // TODO: If filename exists, use template, otherwise try partial using
+                // default extension.  If still fails, throw 404.
+            }
+            /*
+            * get(resource, 'partial');        Speficied view
+            * get(resource, 'partial.ext');    If an extension is given then this
+            *                                  is looked up for this and all child
+            *                                  resources.  If no extension is given
+            *                                  default extension is presumed.
+            *                                  If both a resource ext and partial ext
+            *                                  are given, partial ext overrides.
+            */
+        
+        
+            if ( ! controller_info) {
+            	throw "404";
+            }
+            dispatch_controller(this, controller_info);
+            if ( ! dispatch_controller(this, controller_info)) {
                 return '';
             }
-
             // TODO: Check if template_location has an extension (e.g. .html),
             // otherwise append this.format.
-			var this_component = supplant_template(
-				controller_info.path + '/' + this.called_action + this.format,
-				this.view
-			);
-
+    	    var this_component = supplant_template(
+    	        controller_info.path + '/' + this.called_action + this.format,
+    	        this.view
+    	        );
+    
             if ( ! priv.template ) {
                 return this_component;
             }
             var view = {};
-
+    
             view[priv.template_placeholder] = this_component;
             for (var i in this.view) {
                 if (i.charAt(0) === '_') {
                     view[i.substring(1)] = this.view[i];
                 }
             };
-
+        
             var tpl_controller = controller_proto({
                 request: priv.template,
                 view: view,
                 path: my.path
             });
+
             return tpl_controller.get(priv.template);
-		},
-
-
-	};
+    	}
+    };
 };
 
 function find_controller(path, tail) {
