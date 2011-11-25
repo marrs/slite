@@ -55,6 +55,7 @@ function controller_proto(request) {
             }
 			controller_info.url = url;
             controller_info.path = split_pathname.path;
+            slite.debug('split-pathname', split_pathname);
             merge(controller_info, find_action(split_pathname.tail));
 			// XXX This is wrong!  this.format sets the format for the whole
 			// controller.  We want to set the format for each action.
@@ -88,7 +89,9 @@ function controller_proto(request) {
 			if ( ! controller_info) {
 				throw "404";
 			}
-			dispatch_controller(this, controller_info);
+			if ( ! dispatch_controller(this, controller_info)) {
+                return '';
+            }
 
             // TODO: Check if template_location has an extension (e.g. .html),
             // otherwise append this.format.
@@ -189,6 +192,10 @@ function dispatch_controller(proto, meta) {
         resource = meta.path;
     ctrl.call(proto);
     proto.url = meta.url;
+    if (proto.actions[meta.action] === undefined) {
+        return false;
+        // TODO throw "500";
+    }
     proto.actions[meta.action].call(proto);
     proto.called_action = meta.action;
 }
