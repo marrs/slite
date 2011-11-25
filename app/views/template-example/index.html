@@ -1,0 +1,28 @@
+<p>This is the index view of template-example controller.  It has been
+embedded in a template via its controller's "template" method. This method
+takes 2 arguments:
+</p>
+<ol>
+    <li>The template name.</li>
+    <li>The placeholder to supplant.</li>
+</ol>
+
+<p>This view can be supplanted with model data in the usual way.  In this
+example, the placeholder <code>&#123;example&#125;</code> is supplanted
+with the value <pre>{example}</pre>.</p>
+
+<p>Some data needs to be provided to the template into which this view is
+being embedded.  For example, you might want to set the title element, or
+the h1 element.  This can be also be done through the controller's view
+object.  Just prefix any property that belongs to the template view with
+an underscore first.</p>
+
+<p>For example, in order to supplant the template's <code>&lt;title&gt;</code>
+tag, add the following code to your controller action:</p>
+
+<pre><code>this.view._title = "My page title";</code></pre>
+
+<p>This concept works recursively.  For example, if you are embedding this
+view's template into another template, you can use 2 underscores to reference
+its placeholders, and so on.</p>
+
