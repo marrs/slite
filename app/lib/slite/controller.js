@@ -84,20 +84,17 @@ function controller_proto(request) {
             */
         
         
-            if ( ! controller_info) {
+            if ( ! controller_info ) {
             	throw "404";
             }
-            dispatch_controller(this, controller_info);
-            if ( ! dispatch_controller(this, controller_info)) {
-                return '';
-            }
+            dispatch_controller(this, controller_info)
             // TODO: Check if template_location has an extension (e.g. .html),
             // otherwise append this.format.
     	    var this_component = supplant_template(
     	        controller_info.path + '/' + this.called_action + this.format,
     	        this.view
     	        );
-    
+
             if ( ! priv.template ) {
                 return this_component;
             }
@@ -142,6 +139,7 @@ function find_controller(path, tail) {
         }
     }
 }
+
 function find_action(tail) {
     var action, format;
     if (tail.length) {
@@ -190,7 +188,7 @@ function dispatch_controller(proto, meta) {
     ctrl.call(proto);
     proto.url = meta.url;
     if (proto.actions[meta.action] === undefined) {
-        return false;
+        throw "SLITE: " + meta.action + " is not an action of proto."
         // TODO throw "500";
     }
     proto.actions[meta.action].call(proto);
