@@ -1,4 +1,5 @@
 var sys = require('util'),
+    fs = require('fs'),
     http = require('http'),
     slite = require('./slite'),
     mvc = require('./controller'),
@@ -15,6 +16,39 @@ if (!String.prototype.supplant) {
     };
 }
 
+// TODO: Modularise and unit test (and come up with better name).
+function prioritiser() {
+    var subroutines, total, checked_in, on_complete;
+
+    checked_in = 0;
+    function check_in() {
+        slite.debug('checking in');
+        if (++checked_in >= total) {
+            on_complete();
+        }
+    }
+
+    function when() {
+        var i;
+
+        total       = arguments.length;
+        subroutines = arguments;
+
+        return {
+            ready: function(fn) {
+                on_complete = fn;
+                for (i=0; i<total; i++) {
+                    subroutines[i].call({});
+                }
+            }
+        }
+    }
+    return {
+        when: when,
+        ready: check_in
+    }
+}
+
 
 var server = http.createServer(function (req, res) {
     //TODO: header should be written by delegator per request.
@@ -22,37 +56,38 @@ var server = http.createServer(function (req, res) {
     function line(str) {
         res.write(str + "\n");
     }
-    line(req.url);
-    line(req.method);
-    try {
-    	line(delegate(req));
-    } catch (e) {
-    	line('ERROR:');
-    	line(e);
-    }
-    res.end("fin\n");
+    console.log('request path:', req.url);
+    console.log('request method:', req.method);
+    var p = prioritiser();
+    slite.debug('delegation respones', p);
+    p.when(function(){
+        delegate(p, req, res);
+    }).ready(function() {
+        console.log('ending respones');
+        res.end();
+    });
 });
 server.listen(config.port, config.ip);
 sys.puts('Server running at ' + config.ip + ':' + config.port + '/');
 
 process.addListener("SIGINT", function () {
+    process.stdout.write("Closing connection...");
     server.close();
-    sys.puts("Closing connection");
+    sys.puts("Done");
     process.exit(0)
 });
 
-function delegate (req, res) {
+function delegate (p, req, res) {
     var payload;
-    slite.debug(config.public_dir);
+    slite.debug('public dir', config.public_dir);
     fs.readFile(config.public_dir + req.url, function(err, data) {
         if (data === undefined) {
             var controller = mvc.controller_proto('request');
-            slite.debug('wtf', req.accepts);
             res.write(controller.get(req.url));
-            res.end();
+            p.ready();
         } else {
             res.write(data);
-            res.end();
+            p.ready();
         }
     });
 }
