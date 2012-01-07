@@ -5,11 +5,15 @@ exports.root = function(path) {
 	return config.app_root + path;
 }
 
-exports.debug = function(name, val) {
-    if (typeof val === 'object') {
-        val = otos(val);
+exports.debug = function() {
+    var i, len, val,
+        args   = arguments,
+        output = [];
+
+    for (i=0, len=args.length, val=args[i]; i<len; val=args[++i]) {
+        output[i] = typeof val === 'object'? otos(val): val;
     }
-	sys.puts(name + '\t' + val);
+	sys.puts(output.join('\t'));
 }
 
 function otos(o, depth) {
