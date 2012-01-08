@@ -3,6 +3,7 @@ var sys = require('util'),
     http = require('http'),
     slite = require('./slite'),
     mvc = require('./controller'),
+    mime = require('mime'),
     config = slite.config;
 
 if (!String.prototype.supplant) {
@@ -51,8 +52,6 @@ function prioritiser() {
 
 
 var server = http.createServer(function (req, res) {
-    //TODO: header should be written by delegator per request.
-    res.writeHead(200, {'Content-Type': 'text/html'});
     function line(str) {
         res.write(str + "\n");
     }
@@ -61,9 +60,13 @@ var server = http.createServer(function (req, res) {
     var p = prioritiser();
     slite.debug('delegation respones', p);
     p.when(function(){
-        delegate(p, req, res);
+        try {
+            delegate(p, req, res);
+            res.statusCode = 200;
+        } catch (e) {
+            res.statusCode = 500;
+        }
     }).ready(function() {
-        console.log('ending respones');
         res.end();
     });
 });
@@ -78,14 +81,18 @@ process.addListener("SIGINT", function () {
 });
 
 function delegate (p, req, res) {
-    var payload;
+    var payload,
+        filepath = config.public_dir + req.url;
+
     slite.debug('public dir', config.public_dir);
-    fs.readFile(config.public_dir + req.url, function(err, data) {
+    fs.readFile(filepath, function(err, data) {
         if (data === undefined) {
             var controller = mvc.controller_proto('request');
+            res.setHeader('Content-Type', 'text/html');
             res.write(controller.get(req.url));
             p.ready();
         } else {
+            res.setHeader('Content-Type', mime.lookup(filepath) || 'text/plain');
             res.write(data);
             p.ready();
         }
