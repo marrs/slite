@@ -1,9 +1,9 @@
 var slite = require('./slite'),
     sys   = require('util'),
     fs    = require('fs'),
-    default_action = 'index',		// TODO: Move to config.
-	default_controller = '/index',	// TODO: Move to config.
-	default_format = '.html';		// TODO: Move to config.
+    default_action = 'index',        // TODO: Move to config.
+    default_controller = '/index',   // TODO: Move to config.
+    default_format = '.html';        // TODO: Move to config.
 
 exports.controller_proto = controller_proto;
 
@@ -25,9 +25,9 @@ function controller_proto(request) {
     return {
         request: my.request,
         format: default_format,
-    	view: my.view,
-    	actions: {},
-    	url: {},
+        view: my.view,
+        actions: {},
+        url: {},
         template: function(template_location, placeholder) {
             priv.template = template_location;
             // Placeholder string into which the controller's view is
@@ -37,21 +37,21 @@ function controller_proto(request) {
         view_: function(p, v) {
             this.view[p] = this.view[p] || v;
         },
-    	get: function(resource, partial){
+        get: function(resource, partial){
             var url, controller_info, split_pathname, parts, action;
             if (resource[0] !== '/') {
                 resource = my.path + resource;
             }
-    	    url = require('url').parse(resource, true),
+            url = require('url').parse(resource, true),
             controller_info = {},
-    	    split_pathname = find_controller(url.pathname, []),
-    	    parts = resource.split('/'),
-    	    action = parts.pop();
+            split_pathname = find_controller(url.pathname, []),
+            parts = resource.split('/'),
+            action = parts.pop();
             if (split_pathname === false) {
                 console.log('Default controller not found. Path:', url.pathname);
                 throw "500";
             }
-    	    controller_info.url = url;
+            controller_info.url = url;
             controller_info.path = split_pathname.path;
             slite.debug('split-pathname', split_pathname);
             merge(controller_info, find_action(split_pathname.tail));
@@ -63,7 +63,7 @@ function controller_proto(request) {
             * get(resource);                   Default view
             */
             /*
-            * get(resource, {});               Object			// DONE
+            * get(resource, {});               Object            // DONE
              */
             if (partial === {}) return this.view;
             if (typeof partial === 'object') {
@@ -85,15 +85,15 @@ function controller_proto(request) {
         
         
             if ( ! controller_info ) {
-            	throw "404";
+                throw "404";
             }
             dispatch_controller(this, controller_info)
             // TODO: Check if template_location has an extension (e.g. .html),
             // otherwise append this.format.
-    	    var this_component = supplant_template(
-    	        controller_info.path + '/' + this.called_action + this.format,
-    	        this.view
-    	        );
+            var this_component = supplant_template(
+                controller_info.path + '/' + this.called_action + this.format,
+                this.view
+                );
 
             if ( ! priv.template ) {
                 return this_component;
@@ -114,7 +114,7 @@ function controller_proto(request) {
             });
 
             return tpl_controller.get(priv.template);
-    	}
+        }
     };
 };
 
@@ -162,24 +162,24 @@ function find_action(tail) {
 }
 
 function path_to_array(path) {
-	if (path === '/') {
-		return [];
-	}
-	var parts = path.split('/');
-	parts.shift();
-	return parts;
+    if (path === '/') {
+        return [];
+    }
+    var parts = path.split('/');
+    parts.shift();
+    return parts;
 }
 
 function require_controller(c) {
     // TODO XXX Require only gets it once.  We need to load
     // the file on every request, at least in debug mode.
-	return require(slite.root('/controllers' + c));
+    return require(slite.root('/controllers' + c));
 }
 
 function file_exists(filename) {
-	try { var file = fs.statSync(filename); }
-	catch (e) { return false; }
-	return file instanceof fs.Stats? file.isFile()  :  false;
+    try { var file = fs.statSync(filename); }
+    catch (e) { return false; }
+    return file instanceof fs.Stats? file.isFile()  :  false;
 }
 
 function dispatch_controller(proto, meta) {
