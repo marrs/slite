@@ -2,7 +2,10 @@ var config = require(process.env.SLITE_CONFIG),
     sys    = require('util');
 
 exports.root = function(path) {
-	return config.app_root + path;
+  if (config.app_root.indexOf('/') === 0) {
+    return config.app_root + path;
+  }
+	return process.cwd() + '/' + config.app_root + path;
 }
 
 exports.debug = function() {
