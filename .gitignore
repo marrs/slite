@@ -1,0 +1,5 @@
+config.js
+slite
+node_modules/.bin
+node_modules/mocha
+node_modules/chai
