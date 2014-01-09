@@ -1,5 +1,5 @@
 config.js
-slite
+slite-app
 node_modules/.bin
 node_modules/mocha
 node_modules/chai

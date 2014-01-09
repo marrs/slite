@@ -24,8 +24,12 @@
   "bugs": {
     "url": "https://github.com/marrs/slite/issues"
   },
+  "dependencies": {
+    "underscore": "~1.5"
+  },
   "devDependencies": {
     "mocha": "latest",
-    "chai": "latest"
+    "chai": "latest",
+    "node-mocks-http": "latest"
   }
 }
