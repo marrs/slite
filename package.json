@@ -1,0 +1,31 @@
+{
+  "name": "slite",
+  "version": "0.0.0",
+  "description": "A PAC framework for node.js",
+  "main": "app/slite",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/marrs/slite.git"
+  },
+  "keywords": [
+    "web",
+    "framework",
+    "pac",
+    "hmvc"
+  ],
+  "author": "David Marrs",
+  "license": "BSD-2-Clause",
+  "bugs": {
+    "url": "https://github.com/marrs/slite/issues"
+  },
+  "devDependencies": {
+    "mocha": "latest",
+    "chai": "latest"
+  }
+}
