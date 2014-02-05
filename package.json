@@ -25,7 +25,8 @@
     "url": "https://github.com/marrs/slite/issues"
   },
   "dependencies": {
-    "underscore": "~1.5"
+    "underscore": "~1.5",
+    "async": "~0.2"
   },
   "devDependencies": {
     "mocha": "latest",

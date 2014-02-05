@@ -7,18 +7,11 @@ FEATURES
 
   * Caches any data retrieved to improve subsequent look-up.
   * Uses a RESTful interface internally as well as externally.
+  * Non-blocking dependency resolution.
 
 DEPENDENCIES
 
   * Node.js
-  * Expresso (for unit testing)
-
-LIMITATIONS (Not stuff that just hasn't been implemented yet)
-
-  * Reads templates syncronously
-    - Enables page to be built through nested functions but may be slower
-	  than using an event driven procedure.  Might investigate how much / if
-	  speed improves with an event driven model after v1.0 is complete.
 
 HOW IT WORKS
 
@@ -47,29 +40,47 @@ JSON template would be in shop/index.json, and so on.
 
 	--Controller--
 
-  * binds data to a template (view) and returns result.
+  * binds data to a template and returns result.
   * RESTful in nature.
   * can make requests of other controllers.
   * option to overload with other methods may be added later if it can be done
     safely.
   
-  Get:
-    * 1st arg: the path to the controller for the requested component.
-    * 2nd arg: (optional)
-		* an alternative view for the controller to format;
-		* an empty object (no 3rd arg possible);
-		* an object containing query data.
-    * 3rd arg: (optional)
-		* an object containing query data (if 2nd arg was a view);
-		* an alternative view (if 2nd arg was an object).
+  Controller functions must be provided for the HTTP methods supported
+  by Slite (so far this includes GET, and only GET).
+
+  See the demo app controllers for an example of how to create a controller.
+
+  Each function is used as the constructor for an object at runtime. This means
+  that the `this` keyword is available and required for use.
+
+  this.get:
+    Used to fetch nested components.
+    * 1st arg: an array of dependencies (identified by path)
+    * 2nd arg: a callback containing functions for resolving those paths.
+
+    These functions take the following arguments:
+      * 1st arg: the name of the property in the view you wish to attach
+                 the payload to.
+      * 2nd arg: an object that can override the nested component's view
 
     Examples: (SUBJECT TO CHANGE)
-      get('/path/to/resource');  // returns default view
-      get('/path/to/resource', {});  // returns the model directly
-                                    // (useful for json encoding)
-      get('/path/to/resource', '.xml');  // returns as xml
-      get('/path/to/resource', '/path/to/some/other/view.html');
-                                        // returns a custom view (as html).
+    ```javascript
+      get(['/path/to/resource'], function(a) {
+        // Bind the payload straight to this property.
+        a('placeholderName');  
+
+        // As above, but override nested component's view.foo 
+        // with 'bar'.
+      });
+    ```
+
+    The original version had options for fetching the data in different
+    formats, and also an option for choosing different templates. It
+    would be nice to get this back into the new code.
+
+    It would also be nice to be able to manipulate the payload before
+    binding it.
 
   Post:
     * 1st arg: a request object (containing request method, data, etc).

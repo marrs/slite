@@ -1,11 +1,8 @@
-exports.controller = function(){
-	function index(){
+exports.get = function(){
 		this.view.h1 = 'World';
-		this.view.static_content = this.get('/components/static_content', {example: 'foo'});
-		this.view.get_with_querystring = this.get('/components/get_with_querystring', {name: 'david'});
-	}
-
-	this.actions = {
-		index: index
-	}
+    this.get(['/components/static_content',
+              '/components/get_with_querystring'], function(a, b) {
+        a('static_content', {example: 'foo'});
+        b('get_with_querystring', {name: 'david'});
+    });
 };
