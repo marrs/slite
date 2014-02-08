@@ -36,8 +36,14 @@ describe('router', function() {
 
     it ('servers resources from controller if static content is not present', function(done) {
       config.app_root = __dirname + '/../..';
-      expect(true).to.be.false;
-      done();
+      var request = http_mocks.create_getRequest({ url: '/asset.txt' });
+      var response = http_mocks.create_response();
+      response.on('end', function() {
+        expect(response.statusCode).to.eq(200);
+        done();
+      });
+
+      router.delegate(request, response);
     });
   });
 });

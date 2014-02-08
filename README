@@ -3,6 +3,14 @@ Slite
 
 A PAC framework written in Javascript.
 
+WARNING
+
+This project is a work in progress. Features documented here may not work,
+or even exist. They are here for the author's benefit only.  At the time of
+writing this framework is capable of serving static content.
+
+It may not serve it very well!
+
 FEATURES
 
   * Caches any data retrieved to improve subsequent look-up.
